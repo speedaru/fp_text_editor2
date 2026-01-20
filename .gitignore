@@ -1,0 +1,8 @@
+# visual studio stuff
+.vs/
+*.vcxproj.user
+
+# build files
+*build/
+*intermediate/
+
