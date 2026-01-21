@@ -26,6 +26,8 @@ namespace spd {
 #pragma region data_manipulation
 		void Insert(const T& element, size_t idx);
 		void PushBack(const T& element);
+
+		void RemoveAt(size_t idx);
 #pragma endregion
 
 
@@ -81,7 +83,7 @@ inline spd::vector<T>::vector(const vector& other) {
 	Realloc(static_cast<size_t>(other.m_size * GROWTH_FACTOR));
 
 	while (m_size < other.m_size) {
-		new (m_data + m_size) T(std::copy(other.m_data[m_size]));
+		new (m_data + m_size) T(other.m_data[m_size]);
 		m_size++;
 	}
 
@@ -174,11 +176,11 @@ inline void spd::vector<T>::Insert(const T& element, size_t idx) {
 			// 2. Manually destroy the old object at i-1
 			m_data[i - 1].~T();
 		}
-		LOG_D("shifted %llu elements for insert\n", m_size - idx);
+		LOG_D("shifted %llu elements right for insert\n", m_size - idx);
 	}
 
 	// placement new at desired idx
-	new (m_data + idx) T(std::copy(element));
+	new (m_data + idx) T(element);
 
 	LOG_D("inserted element into vector at idx %llu\n", idx);
 	m_size++; // inc element count
@@ -188,6 +190,30 @@ template<typename T>
 inline void spd::vector<T>::PushBack(const T& element) {
 	Insert(element, m_size);
 	LOG_D("pushed back element\n");
+}
+
+template<typename T>
+inline void spd::vector<T>::RemoveAt(size_t idx) {
+	if (idx > m_size) {
+		LOG_E("trying to remove element at %llu in vector but size is: %llu\n", idx, m_size);
+		return;
+	}
+
+	// shift data to right if inserting in middle
+	for (size_t i = idx; i < m_size - 1; i++) {
+		// delete current element
+		m_data[i].~T();
+
+		// move next element back 1 index
+		new (m_data + i) T(std::move(m_data[i + 1]));
+	}
+
+	LOG_D("shifted %llu elements left for insert\n", m_size - idx);
+
+	// delete last element bcs we shifted everything 1 left and decrement size
+	m_data[m_size--].~T();
+
+	LOG_D("removed element at %llu from vector\n", idx);
 }
 
 #pragma endregion

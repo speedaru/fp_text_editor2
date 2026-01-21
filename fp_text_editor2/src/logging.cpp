@@ -1,21 +1,7 @@
 #include "logging.h"
 
-#ifdef SPD_PLATFORM_LINUX
-static FILE* logFile = NULL;
-#endif
-#ifdef SPD_PLATFORM_WINDOWS
 static std::ofstream logFile{};
-#endif
 
-#ifdef SPD_PLATFORM_LINUX
-void logging::LoggerInit(const char* filename) {
-    logFile = fopen(filename, "w");
-    if (!logFile) {
-        fprintf(stderr, "Failed to open log file!\n");
-    }
-}
-#endif
-#ifdef SPD_PLATFORM_WINDOWS
 void logging::LoggerInit(const char* filename) {
     logFile = std::ofstream(filename, std::ios::binary);
     if (!logFile) {
@@ -23,7 +9,6 @@ void logging::LoggerInit(const char* filename) {
         return;
     }
 }
-#endif
 
 void logging::LoggerShutdown() {
     if (logFile.is_open()) {
