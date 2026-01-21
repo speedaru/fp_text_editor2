@@ -1,6 +1,12 @@
 #pragma once
 #include <stdio.h>
 #include <time.h>
+#include <fstream>
+#include <stdarg.h>
+#include <format>
+
+#include "macros.h"
+
 
 namespace logging {
 	// Log Levels
@@ -19,10 +25,10 @@ namespace logging {
 	// Core logging function (don't call this directly, use macros)
 	void LogOutput(LogLevel level, const char* file, int line, const char* func, const char* fmt, ...);
 
-	#define LOG_T(...) LogOutput(logging::LOG_TRACE, __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
-	#define LOG_D(...) LogOutput(logging::LOG_DEBUG, __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
-	#define LOG_I(...) LogOutput(logging::LOG_INFO,  __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
-	#define LOG_W(...) LogOutput(logging::LOG_WARN,  __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
-	#define LOG_E(...) LogOutput(logging::LOG_ERROR, __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
+	#define LOG_T(...) LogOutput(logging::LOG_TRACE, __RELATIVE_FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
+	#define LOG_D(...) LogOutput(logging::LOG_DEBUG, __RELATIVE_FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
+	#define LOG_I(...) LogOutput(logging::LOG_INFO,  __RELATIVE_FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
+	#define LOG_W(...) LogOutput(logging::LOG_WARN,  __RELATIVE_FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
+	#define LOG_E(...) LogOutput(logging::LOG_ERROR, __RELATIVE_FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
 }
 

@@ -7,8 +7,8 @@ inline size_t totalBytesAllocated{};
 inline size_t totalBytesFreed{};
 inline size_t bytesAllocated{};
 
-#define SPD_ALLOC(type, size) spd::TrackedAlloc<type>(size, __FILE__, __LINE__)
-#define SPD_FREE(ptr) spd::TrackedFree(ptr, __FILE__, __LINE__)
+#define SPD_ALLOC(type, count) spd::TrackedAlloc<type>(count, __RELATIVE_FILE__, __LINE__)
+#define SPD_FREE(ptr) spd::TrackedFree(ptr, __RELATIVE_FILE__, __LINE__)
 
 namespace spd {
 	namespace {
@@ -30,7 +30,7 @@ namespace spd {
 		
 		T* ptr = reinterpret_cast<T*>(base + 1);
 
-		LOG_D("ALLOC: %p [%zu bytes] for %zu elements at %s:%d (allocated: %zu)\n",
+		LOG_D("ALLOC: 0x%p [%zu bytes] for %zu elements at %s:%d (allocated: %zu)\n",
 			(void*)ptr, size, count, file, line, _GetBytesAllocated());
 
 		return ptr;
@@ -47,7 +47,7 @@ namespace spd {
 
 		totalBytesFreed += size;
 
-		logging::LOG_D("FREE: %p [%zu bytes] at %s:%d (allocated: %zu)\n",
+		logging::LOG_D("FREE: 0x%p [%zu bytes] at %s:%d (allocated: %zu)\n",
 			base, size, file, line, _GetBytesAllocated());
 
 		free(base);
