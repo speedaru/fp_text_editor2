@@ -35,13 +35,11 @@ struct TestClass {
 };
 
 void PrintVector(const spd::vector<TestClass>& vec) {
-	const TestClass* start = vec.Data();
-	const TestClass* end = start + vec.Size();
-	for (const TestClass* it = start; it < end; it++) {
-		if (it != start) {
+	for (auto it = vec.begin(); it != vec.end(); ++it) {
+		if (it != vec.begin()) {
 			std::cout << ", ";
 		}
-		std::cout << (int)(it->m_data);
+		std::cout << (int)it->m_data;
 	}
 	std::cout << std::endl;
 }

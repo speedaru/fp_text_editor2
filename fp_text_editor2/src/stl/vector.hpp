@@ -1,5 +1,6 @@
 #pragma once
 #include <common.h>
+#include <stl/iterator.hpp>
 
 
 namespace spd {
@@ -44,6 +45,12 @@ namespace spd {
 			return const_cast<const T*>(m_data);
 		}
 #pragma endregion
+
+		auto begin() { return spd::iterator<T>(m_data); }
+		auto end() { return spd::iterator<T>(m_data + m_size); }
+
+		auto begin() const { return spd::iterator<const T>(m_data); }
+		auto end() const { return spd::iterator<const T>(m_data + m_size); }
 
 	private:
 		constexpr static const size_t INITIAL_CAPACITY = 8ull;

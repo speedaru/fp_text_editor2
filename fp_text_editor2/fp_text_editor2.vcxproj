@@ -148,6 +148,7 @@
     <ClInclude Include="src\core\mem.h" />
     <ClInclude Include="src\macros.h" />
     <ClInclude Include="src\logging.h" />
+    <ClInclude Include="src\stl\iterator.hpp" />
     <ClInclude Include="src\stl\vector_unit_tests.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
