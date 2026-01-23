@@ -66,7 +66,7 @@ namespace spd {
 			vec.EmplaceBack(50);
 
 			LOG_D("inserting at idx 0 test class isntance with 55\n");
-			vec.Insert(0, TestClass(55));
+			vec.Emplace(0, TestClass(55));
 
 			LOG_D("size before remove at: %llu\n", vec.Size());
 			PrintVector(vec);
