@@ -32,6 +32,10 @@ struct TestClass {
 		m_data = other.m_data;
 		other.m_data = 0;
 	}
+
+	~TestClass() {
+		LOG_D("destructor\n");
+	}
 };
 
 void PrintVector(const spd::vector<TestClass>& vec) {
@@ -49,16 +53,28 @@ namespace spd {
 		inline void Vector() {
 			// create vector
 			spd::vector<TestClass> vec;
+			LOG_D("resizing vector to 3\n");
 			vec.Resize(3);
+			
+			LOG_D("reserving 12 elements\n");
 			vec.Reserve(12);
 
-			vec.PushBack(TestClass(54));
-			vec.Insert(TestClass(55), 0);
+			LOG_D("pushing back test class isntance with 54\n");
+			vec.PushBack(54);
+
+			LOG_D("emplacing back test class isntance with 50\n");
+			vec.EmplaceBack(50);
+
+			LOG_D("inserting at idx 0 test class isntance with 55\n");
+			vec.Insert(0, TestClass(55));
 
 			LOG_D("size before remove at: %llu\n", vec.Size());
 			PrintVector(vec);
+
+			LOG_D("removing element at idx 0\n");
 			vec.RemoveAt(0);
 
+			LOG_D("creating copy of vector\n");
 			spd::vector<TestClass> vec2(vec);
 		}
 	}

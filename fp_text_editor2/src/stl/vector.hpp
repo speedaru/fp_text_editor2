@@ -1,4 +1,6 @@
 #pragma once
+#include <utility>
+
 #include <common.h>
 #include <stl/iterator.hpp>
 
@@ -25,10 +27,18 @@ namespace spd {
 
 
 #pragma region data_manipulation
-		void Insert(const T& element, size_t idx);
-		void PushBack(const T& element);
+		T& Insert(size_t idx, const T& element); // copy
+		T& Insert(size_t idx, T&& element); // move
 
-		void RemoveAt(size_t idx);
+		template<typename... Args>
+		T& Emplace(size_t idx, Args&&... args);
+
+		T& PushBack(const T& element);
+
+		template<typename... Args>
+		T& EmplaceBack(Args&&... args);
+
+		T& RemoveAt(size_t idx);
 #pragma endregion
 
 
@@ -58,6 +68,14 @@ namespace spd {
 
 		bool Realloc(size_t newSize);
 		bool Realloc();
+
+		template<typename... Args>
+		T& InsertImpl(size_t idx, Args&&... args);
+
+		void GrowIfNeeded();
+
+		void MoveElementsLeftIfNeeded(size_t start);
+		void MoveElementsRightIfNeeded(size_t start);
 
 		// calls destructor for each data
 		void DestroyData(T* data, size_t size);
@@ -164,63 +182,73 @@ inline bool spd::vector<T>::ShrinkToFit() {
 #pragma region data_manipulation
 
 template<typename T>
-inline void spd::vector<T>::Insert(const T& element, size_t idx) {
-	// ensure not inserting past last element
+inline T& spd::vector<T>::Insert(size_t idx, const T& element) {
 	assert(idx <= m_size);
 
-	// if data full realloc
-	if (m_size >= m_capacity) {
-		Realloc();
-	}
+	bool alias = m_data <= &element && element < m_data + m_size;
+	T temp = alias ? T(element) : T();
 
-	// shift data to right if inserting in middle
-	if (idx < m_size) {
-		for (size_t i = m_size; i > idx; i--) {
-			// Construct new object at i using the move constructor from i - 1
-			// even if T has const members
-			new (m_data + i) T(std::move(m_data[i - 1]));
-
-			// 2. Manually destroy the old object at i-1
-			m_data[i - 1].~T();
-		}
-		LOG_D("shifted %llu elements right for insert\n", m_size - idx);
-	}
-
-	// placement new at desired idx
-	new (m_data + idx) T(element);
-
-	LOG_D("inserted element into vector at idx %llu\n", idx);
-	m_size++; // inc element count
+	LOG_D("inserting element (copy) into vector at idx %llu\n", idx);
+	return InsertImpl(idx, alias ? temp : element);
 }
 
 template<typename T>
-inline void spd::vector<T>::PushBack(const T& element) {
-	Insert(element, m_size);
+inline T& spd::vector<T>::Insert(size_t idx, T&& element) {
+	assert(idx <= m_size);
+
+	bool alias = m_data <= &element && element < m_data + m_size;
+	T temp = alias ? T(std::move(element)) : T();
+
+	LOG_D("inserting element (move) into vector at idx %llu\n", idx);
+	return InsertImpl(idx, alias ? std::move(temp) : std::move(element));
+}
+
+template<typename T>
+inline T& spd::vector<T>::PushBack(const T& element) {
+	GrowIfNeeded();
+
+	T* slot = m_data + m_size;
+	new (slot) (element);
 	LOG_D("pushed back element\n");
+
+	m_size++;
+	return *slot;
 }
 
 template<typename T>
-inline void spd::vector<T>::RemoveAt(size_t idx) {
+template<typename ...Args>
+inline T& spd::vector<T>::Emplace(size_t idx, Args&&... args) {
+	assert(idx <= m_size);
+
+	LOG_D("emplacing element at %llu\n", idx);
+	return InsertImpl(idx, std::forward<Args>(args)...);
+}
+
+template<typename T>
+template<typename ...Args>
+inline T& spd::vector<T>::EmplaceBack(Args&&... args) {
+	GrowIfNeeded();
+
+	T* slot = m_data + m_size;
+	new (slot) (std::forward<Args>(args));
+	LOG_D("emplaced back element\n");
+
+	m_size++;
+	return *slot;
+}
+
+template<typename T>
+inline T& spd::vector<T>::RemoveAt(size_t idx) {
 	if (idx > m_size) {
 		LOG_E("trying to remove element at %llu in vector but size is: %llu\n", idx, m_size);
 		return;
 	}
 
-	// shift data to right if inserting in middle
-	for (size_t i = idx; i < m_size - 1; i++) {
-		// delete current element
-		m_data[i].~T();
-
-		// move next element back 1 index
-		new (m_data + i) T(std::move(m_data[i + 1]));
-	}
-
-	LOG_D("shifted %llu elements left for insert\n", m_size - idx);
-
-	// delete last element bcs we shifted everything 1 left and decrement size
-	m_data[m_size--].~T();
+	MoveElementsLeftIfNeeded(idx);
+	LOG_D("shifted %llu elements left for remove at\n", m_size - idx);
 
 	LOG_D("removed element at %llu from vector\n", idx);
+	m_size--;
 }
 
 #pragma endregion
@@ -239,18 +267,19 @@ inline bool spd::vector<T>::Realloc(size_t newCapacity) {
 
 	if (m_data) {
 		// copy old data if new size at least as big
-		if (newCapacity >= m_size && m_size) {
-			for (size_t i = 0; i < m_size; i++) {
-				new (newData + i) T(std::move(m_data[i]));
+		if (m_size) {
+			// in case we're shrinking
+			size_t copyCount = min(m_size, newCapacity);
 
-				// destroy old data
-				m_data[i].~T();
+			// copy data into new buff
+			for (size_t i = 0; i < copyCount; i++) {
+				new (newData + i) T(std::move(m_data[i]));
 			}
 
-			// destroy old data
 			DestroyData(m_data, m_size);
 		}
 
+		// free old data
 		SPD_FREE(m_data);
 	}
 
@@ -264,6 +293,76 @@ inline bool spd::vector<T>::Realloc(size_t newCapacity) {
 template<typename T>
 inline bool spd::vector<T>::Realloc() {
 	return Realloc(static_cast<size_t>(m_capacity * GROWTH_FACTOR));
+}
+
+template<typename T>
+template<typename ...Args>
+inline T& spd::vector<T>::InsertImpl(size_t idx, Args && ...args) {
+	// ensure not inserting past last element
+	assert(idx <= m_size);
+
+	GrowIfNeeded();
+	MoveElementsRightIfNeeded(idx);
+
+	// construct in hole
+	T* slot = m_data + idx;
+	new (slot) T(std::forward<Args>(args)...);
+
+	m_size++;
+	return *slot;
+}
+
+template<typename T>
+inline void spd::vector<T>::GrowIfNeeded() {
+	// if data full realloc
+	if (m_size >= m_capacity) {
+		Realloc();
+	}
+}
+
+template<typename T>
+inline void spd::vector<T>::MoveElementsLeftIfNeeded(size_t start) {
+	// ensure not oob
+	assert(start <= m_size);
+
+	// remove last element, nothing to shift
+	if (idx >= m_size - 1) {
+		m_data[m_size - 1].~T();
+	}
+
+	// shift data to left
+	for (size_t i = start; i < m_size; i++) {
+		// delete current element
+		m_data[i].~T();
+
+		// not last element
+		if (i != m_size - 1) {
+			// move next element back 1 index
+			new (m_data + i) T(std::move_if_noexcept(m_data[i + 1]));
+		}
+	}
+}
+
+template<typename T>
+inline void spd::vector<T>::MoveElementsRightIfNeeded(size_t idx) {
+	// nothing to shift
+	if (idx == m_size) {
+		return;
+	}
+
+	assert(idx < m_size); // ensure not oob
+	assert(m_size + 1 <= m_capacity); // ensure enough space
+
+	// move construct last element into new space
+	new (m_data + m_size) T(std::move_if_noexcept(m_data[m_size - 1]));
+
+	// shift backward
+	for (size_t i = m_size - 1; i > idx; i--) {
+		m_data[i] = std::move_if_noexcept(m_data[i - 1]);
+	}
+
+	// destory duplicated element at idx
+	m_data[idx].~T();
 }
 
 template<typename T>
