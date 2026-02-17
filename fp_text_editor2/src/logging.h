@@ -1,10 +1,4 @@
 #pragma once
-#include <stdio.h>
-#include <time.h>
-#include <fstream>
-#include <stdarg.h>
-#include <format>
-
 #include "macros.h"
 
 

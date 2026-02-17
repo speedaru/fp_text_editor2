@@ -13,7 +13,7 @@ inline size_t bytesAllocated{};
 namespace spd {
 	namespace {
 		size_t _GetBytesAllocated() {
-			assert(totalBytesAllocated > totalBytesFreed);
+			assert(totalBytesAllocated >= totalBytesFreed);
 			return totalBytesAllocated - totalBytesFreed;
 		}
 	}

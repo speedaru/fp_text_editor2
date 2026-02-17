@@ -1,0 +1,21 @@
+#pragma once
+#include "common.h"
+
+
+namespace spd {
+	enum class Key : uint32_t {
+        None = 0,
+        // control keys
+        ArrowUp = 1000, ArrowDown, ArrowLeft, ArrowRight,
+        Home, End, PageUp, PageDown,
+        Insert, Delete, Backspace, Enter, Tab, Escape,
+        // modifier combos (optional but helpful)
+        Ctrl_S, Ctrl_Q, Ctrl_F,
+        // any printable char is just its ascii value
+    };
+
+    struct KeyEvent {
+        Key key;
+        char c; // valid if key < 1000
+    };
+}

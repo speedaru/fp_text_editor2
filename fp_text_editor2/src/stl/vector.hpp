@@ -1,21 +1,19 @@
 #pragma once
-#include <utility>
-
-#include <common.h>
-#include <stl/iterator.hpp>
+#include "common.h"
+#include "stl/iterator.hpp"
 
 
 namespace spd {
 	template <typename T>
-	class vector {
+	class Vector {
 	public:
 #pragma region constructors
-		vector();
+		Vector();
 
-		~vector();
+		~Vector();
 
-		vector(const vector& other);
-		vector(vector&& other) noexcept;
+		Vector(const Vector& other);
+		Vector(Vector&& other) noexcept;
 #pragma endregion
 
 
@@ -38,7 +36,7 @@ namespace spd {
 		template<typename... Args>
 		T& EmplaceBack(Args&&... args);
 
-		T& RemoveAt(size_t idx);
+		bool RemoveAt(size_t idx);
 #pragma endregion
 
 
@@ -61,6 +59,12 @@ namespace spd {
 
 		auto begin() const { return spd::iterator<const T>(m_data); }
 		auto end() const { return spd::iterator<const T>(m_data + m_size); }
+
+#pragma region operators
+		T& operator[](size_t idx) {
+			return m_data[idx];
+		}
+#pragma endregion
 
 	private:
 		constexpr static const size_t INITIAL_CAPACITY = 8ull;
@@ -92,19 +96,19 @@ namespace spd {
 #pragma region constructors
 
 template<typename T>
-inline spd::vector<T>::vector() {
+inline spd::Vector<T>::Vector() {
 	Realloc(INITIAL_CAPACITY);
 	LOG_T("created vector at 0x%p, initial capacity: %llu\n", m_data, m_capacity);
 }
 
 template<typename T>
-inline spd::vector<T>::~vector() {
+inline spd::Vector<T>::~Vector() {
 	DestroyData(m_data, m_size);
 	LOG_D("destroyed vector data\n");
 }
 
 template<typename T>
-inline spd::vector<T>::vector(const vector& other) {
+inline spd::Vector<T>::Vector(const Vector& other) {
 	Realloc(static_cast<size_t>(other.m_size * GROWTH_FACTOR));
 
 	while (m_size < other.m_size) {
@@ -116,7 +120,7 @@ inline spd::vector<T>::vector(const vector& other) {
 }
 
 template<typename T>
-inline spd::vector<T>::vector(vector&& other) noexcept {
+inline spd::Vector<T>::Vector(Vector&& other) noexcept {
 	m_size = other.m_size;
 	other.m_size = 0ull;
 
@@ -133,7 +137,7 @@ inline spd::vector<T>::vector(vector&& other) noexcept {
 #pragma region memory_management
 
 template<typename T>
-inline bool spd::vector<T>::Reserve(size_t newCapacity) {
+inline bool spd::Vector<T>::Reserve(size_t newCapacity) {
 	if (newCapacity > m_capacity) {
 		return Realloc(newCapacity);
 	}
@@ -144,7 +148,7 @@ inline bool spd::vector<T>::Reserve(size_t newCapacity) {
 }
 
 template<typename T>
-inline bool spd::vector<T>::Resize(size_t newSize) {
+inline bool spd::Vector<T>::Resize(size_t newSize) {
 	bool res{ true };
 
 	// case 1: new size is smaller than old size
@@ -172,7 +176,7 @@ inline bool spd::vector<T>::Resize(size_t newSize) {
 }
 
 template<typename T>
-inline bool spd::vector<T>::ShrinkToFit() {
+inline bool spd::Vector<T>::ShrinkToFit() {
 	return false;
 }
 
@@ -182,7 +186,8 @@ inline bool spd::vector<T>::ShrinkToFit() {
 #pragma region data_manipulation
 
 template<typename T>
-inline T& spd::vector<T>::Insert(size_t idx, const T& element) {
+inline T& spd::Vector<T>::Insert(size_t idx, const T& element) {
+	// ensure not inserting past last element
 	assert(idx <= m_size);
 
 	bool alias = m_data <= &element && element < m_data + m_size;
@@ -193,7 +198,7 @@ inline T& spd::vector<T>::Insert(size_t idx, const T& element) {
 }
 
 template<typename T>
-inline T& spd::vector<T>::Insert(size_t idx, T&& element) {
+inline T& spd::Vector<T>::Insert(size_t idx, T&& element) {
 	assert(idx <= m_size);
 
 	bool alias = m_data <= &element && element < m_data + m_size;
@@ -204,11 +209,11 @@ inline T& spd::vector<T>::Insert(size_t idx, T&& element) {
 }
 
 template<typename T>
-inline T& spd::vector<T>::PushBack(const T& element) {
+inline T& spd::Vector<T>::PushBack(const T& element) {
 	GrowIfNeeded();
 
 	T* slot = m_data + m_size;
-	new (slot) (element);
+	new (slot) T(element);
 	LOG_D("pushed back element\n");
 
 	m_size++;
@@ -217,7 +222,7 @@ inline T& spd::vector<T>::PushBack(const T& element) {
 
 template<typename T>
 template<typename ...Args>
-inline T& spd::vector<T>::Emplace(size_t idx, Args&&... args) {
+inline T& spd::Vector<T>::Emplace(size_t idx, Args&&... args) {
 	assert(idx <= m_size);
 
 	LOG_D("emplacing element at %llu\n", idx);
@@ -226,7 +231,7 @@ inline T& spd::vector<T>::Emplace(size_t idx, Args&&... args) {
 
 template<typename T>
 template<typename ...Args>
-inline T& spd::vector<T>::EmplaceBack(Args&&... args) {
+inline T& spd::Vector<T>::EmplaceBack(Args&&... args) {
 	GrowIfNeeded();
 
 	T* slot = m_data + m_size;
@@ -238,10 +243,10 @@ inline T& spd::vector<T>::EmplaceBack(Args&&... args) {
 }
 
 template<typename T>
-inline T& spd::vector<T>::RemoveAt(size_t idx) {
+inline bool spd::Vector<T>::RemoveAt(size_t idx) {
 	if (idx > m_size) {
 		LOG_E("trying to remove element at %llu in vector but size is: %llu\n", idx, m_size);
-		return;
+		return false;
 	}
 
 	MoveElementsLeftIfNeeded(idx);
@@ -249,6 +254,8 @@ inline T& spd::vector<T>::RemoveAt(size_t idx) {
 
 	LOG_D("removed element at %llu from vector\n", idx);
 	m_size--;
+
+	return true;
 }
 
 #pragma endregion
@@ -258,7 +265,7 @@ inline T& spd::vector<T>::RemoveAt(size_t idx) {
 #pragma region private
 
 template<typename T>
-inline bool spd::vector<T>::Realloc(size_t newCapacity) {
+inline bool spd::Vector<T>::Realloc(size_t newCapacity) {
 	// allocate new data
 	T* newData = SPD_ALLOC(T, newCapacity);
 	if (!newData) {
@@ -291,13 +298,13 @@ inline bool spd::vector<T>::Realloc(size_t newCapacity) {
 }
 
 template<typename T>
-inline bool spd::vector<T>::Realloc() {
+inline bool spd::Vector<T>::Realloc() {
 	return Realloc(static_cast<size_t>(m_capacity * GROWTH_FACTOR));
 }
 
 template<typename T>
 template<typename ...Args>
-inline T& spd::vector<T>::InsertImpl(size_t idx, Args && ...args) {
+inline T& spd::Vector<T>::InsertImpl(size_t idx, Args && ...args) {
 	// ensure not inserting past last element
 	assert(idx <= m_size);
 
@@ -313,7 +320,7 @@ inline T& spd::vector<T>::InsertImpl(size_t idx, Args && ...args) {
 }
 
 template<typename T>
-inline void spd::vector<T>::GrowIfNeeded() {
+inline void spd::Vector<T>::GrowIfNeeded() {
 	// if data full realloc
 	if (m_size >= m_capacity) {
 		Realloc();
@@ -321,12 +328,12 @@ inline void spd::vector<T>::GrowIfNeeded() {
 }
 
 template<typename T>
-inline void spd::vector<T>::MoveElementsLeftIfNeeded(size_t start) {
+inline void spd::Vector<T>::MoveElementsLeftIfNeeded(size_t start) {
 	// ensure not oob
 	assert(start <= m_size);
 
 	// remove last element, nothing to shift
-	if (idx >= m_size - 1) {
+	if (start >= m_size - 1) {
 		m_data[m_size - 1].~T();
 	}
 
@@ -344,7 +351,7 @@ inline void spd::vector<T>::MoveElementsLeftIfNeeded(size_t start) {
 }
 
 template<typename T>
-inline void spd::vector<T>::MoveElementsRightIfNeeded(size_t idx) {
+inline void spd::Vector<T>::MoveElementsRightIfNeeded(size_t idx) {
 	// nothing to shift
 	if (idx == m_size) {
 		return;
@@ -366,7 +373,7 @@ inline void spd::vector<T>::MoveElementsRightIfNeeded(size_t idx) {
 }
 
 template<typename T>
-inline void spd::vector<T>::DestroyData(T* data, size_t size) {
+inline void spd::Vector<T>::DestroyData(T* data, size_t size) {
 	// nothing to destroy
 	if (!size) {
 		LOG_W("trying to destroy data, but size is 0\n");

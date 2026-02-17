@@ -1,4 +1,9 @@
 #include "logging.h"
+#include <stdio.h>
+#include <time.h>
+#include <fstream>
+#include <stdarg.h>
+#include <format>
 
 static std::ofstream logFile{};
 
