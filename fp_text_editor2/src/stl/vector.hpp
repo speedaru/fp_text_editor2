@@ -230,7 +230,7 @@ inline T& spd::vector<T>::EmplaceBack(Args&&... args) {
 	GrowIfNeeded();
 
 	T* slot = m_data + m_size;
-	new (slot) (std::forward<Args>(args));
+	new (slot) T(std::forward<Args>(args)...);
 	LOG_D("emplaced back element\n");
 
 	m_size++;
