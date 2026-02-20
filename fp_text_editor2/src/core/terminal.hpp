@@ -2,6 +2,8 @@
 #include "input.hpp"
 
 
+#define ANSI_CLEAR_TO_EOL "\x1b[K"
+
 namespace spd {
     struct TermSize {
         int rows{};

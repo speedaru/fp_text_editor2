@@ -9,7 +9,6 @@ namespace spd {
 	public:
 #pragma region constructors
 		Vector();
-
 		~Vector();
 
 		Vector(const Vector& other);
@@ -25,18 +24,21 @@ namespace spd {
 
 
 #pragma region data_manipulation
-		T& Insert(size_t idx, const T& element); // copy
-		T& Insert(size_t idx, T&& element); // move
+		template<typename Ref>
+		T& Insert(size_t idx, Ref&& element); // copy/move insert
 
 		template<typename... Args>
 		T& Emplace(size_t idx, Args&&... args);
 
-		T& PushBack(const T& element);
+		template<typename Ref>
+		T& PushBack(Ref&& element); // copy/move push back
 
 		template<typename... Args>
 		T& EmplaceBack(Args&&... args);
 
 		bool RemoveAt(size_t idx);
+
+		bool PopBack();
 #pragma endregion
 
 
@@ -62,6 +64,9 @@ namespace spd {
 
 #pragma region operators
 		T& operator[](size_t idx) {
+#ifdef _DEBUG
+			assert(idx < m_size); // idx in bounds
+#endif
 			return m_data[idx];
 		}
 #pragma endregion
@@ -83,6 +88,10 @@ namespace spd {
 
 		// calls destructor for each data
 		void DestroyData(T* data, size_t size);
+
+		bool IsAlias(const T& element) const {
+			return m_data <= &element && &element < m_data + m_size;
+		}
 
 	protected:
 		size_t m_size{};
@@ -186,37 +195,43 @@ inline bool spd::Vector<T>::ShrinkToFit() {
 #pragma region data_manipulation
 
 template<typename T>
-inline T& spd::Vector<T>::Insert(size_t idx, const T& element) {
+template<typename Ref>
+inline T& spd::Vector<T>::Insert(size_t idx, Ref&& element) {
 	// ensure not inserting past last element
 	assert(idx <= m_size);
 
-	bool alias = m_data <= &element && element < m_data + m_size;
-	T temp = alias ? T(element) : T();
+	T* res = nullptr;
+	if (IsAlias(element)) { // create temp variable if alias, otherwise its gonna mess up stuff
+		T temp(std::forward<Ref>(element));
+		res = &InsertImpl(idx, std::forward<Ref>(temp));
+	}
+	else {
+		res = &InsertImpl(idx, std::forward<Ref>(element));
+	}
 
-	LOG_D("inserting element (copy) into vector at idx %llu\n", idx);
-	return InsertImpl(idx, alias ? temp : element);
+	if constexpr (!std::is_lvalue_reference_v<Ref>) {
+		LOG_D("inserting element (move) into vector at idx %llu\n", idx);
+	}
+	else {
+		LOG_D("inserting element (copy) into vector at idx %llu\n", idx);
+	}
+	return *res;
 }
 
 template<typename T>
-inline T& spd::Vector<T>::Insert(size_t idx, T&& element) {
-	assert(idx <= m_size);
-
-	bool alias = m_data <= &element && element < m_data + m_size;
-	T temp = alias ? T(std::move(element)) : T();
-
-	LOG_D("inserting element (move) into vector at idx %llu\n", idx);
-	return InsertImpl(idx, alias ? std::move(temp) : std::move(element));
-}
-
-template<typename T>
-inline T& spd::Vector<T>::PushBack(const T& element) {
+template<typename Ref>
+inline T& spd::Vector<T>::PushBack(Ref&& element) {
 	GrowIfNeeded();
 
-	T* slot = m_data + m_size;
-	new (slot) T(element);
-	LOG_D("pushed back element\n");
+	T* slot = m_data + m_size++;
+	new (slot) T(std::forward<Ref>(element));
+	if constexpr (std::is_rvalue_reference_v<Ref>) {
+		LOG_D("pushed back element (move)\n");
+	}
+	else {
+		LOG_D("pushed back element (copy)\n");
+	}
 
-	m_size++;
 	return *slot;
 }
 
@@ -244,7 +259,7 @@ inline T& spd::Vector<T>::EmplaceBack(Args&&... args) {
 
 template<typename T>
 inline bool spd::Vector<T>::RemoveAt(size_t idx) {
-	if (idx > m_size) {
+	if (idx >= m_size) {
 		LOG_E("trying to remove element at %llu in vector but size is: %llu\n", idx, m_size);
 		return false;
 	}
@@ -256,6 +271,12 @@ inline bool spd::Vector<T>::RemoveAt(size_t idx) {
 	m_size--;
 
 	return true;
+}
+
+template<typename T>
+inline bool spd::Vector<T>::PopBack() {
+	assert(m_size > 0); // can't pop back when vector has 0 elements
+	return RemoveAt(m_size - 1);
 }
 
 #pragma endregion
@@ -329,12 +350,17 @@ inline void spd::Vector<T>::GrowIfNeeded() {
 
 template<typename T>
 inline void spd::Vector<T>::MoveElementsLeftIfNeeded(size_t start) {
+	if (m_size == 0) {
+		return;
+	}
+
 	// ensure not oob
-	assert(start <= m_size);
+	assert(start < m_size);
 
 	// remove last element, nothing to shift
-	if (start >= m_size - 1) {
+	if (start == m_size - 1) {
 		m_data[m_size - 1].~T();
+		return;
 	}
 
 	// shift data to left

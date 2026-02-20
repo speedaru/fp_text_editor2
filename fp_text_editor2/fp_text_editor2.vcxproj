@@ -140,6 +140,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\core\editor.cpp" />
+    <ClCompile Include="src\core\input.cpp" />
     <ClCompile Include="src\core\terminal.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\logging.cpp" />

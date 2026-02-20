@@ -17,6 +17,10 @@ namespace spd {
 		// dangling pointer to null terminated cstr
 		const CH* c_str() const;
 
+		CH operator[](int idx) const {
+			return m_data[idx];
+		}
+
 	private:
 		const CH* m_data{};
 		size_t m_length{};

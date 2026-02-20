@@ -172,11 +172,11 @@ spd::KeyEvent spd::Terminal::ReadKey() {
 #endif
 
 void spd::Terminal::Write(const char* str) {
-    printf("%s", str);
+    fwrite(str, sizeof(char), strlen(str), stdout);
 }
 
 void spd::Terminal::Write(const char* buff, size_t len) {
-    printf("%.*s", static_cast<int>(len), buff);
+    fwrite(buff, sizeof(char), len, stdout);
 }
 
 void spd::Terminal::Flush() {

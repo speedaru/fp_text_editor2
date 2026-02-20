@@ -23,6 +23,8 @@ namespace spd {
         void BackSpace(); // simulate backspace
         void Delete(); // simulate delete key
 
+        void TruncateAtGap();
+
         // ensure state is not corrupted
         void Validate() const;
         void DumpState() const;
@@ -30,7 +32,8 @@ namespace spd {
         StringView<CHAR_TYPE> GetPrefixView() const;
         StringView<CHAR_TYPE> GetSuffixView() const;
 
-        size_t GetSize() const { return m_capacity - (m_gapEnd - m_gapStart); }
+        // get logical text length
+        size_t GetSize() const { Validate(); return m_capacity - (m_gapEnd - m_gapStart); }
         CHAR_TYPE* GetBuff() const { return m_data; }
         size_t GetGapStart() const { return m_gapStart; }
         size_t GetGapEnd() const { return m_gapEnd; }

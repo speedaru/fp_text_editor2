@@ -4,15 +4,27 @@
 #include "common.h"
 
 
-spd::GapBuffer::GapBuffer() {
-    m_capacity = DEFAULT_SIZE;
-	m_data = SPD_ALLOC(char, DEFAULT_SIZE);
-    m_gapStart = 0;
-    m_gapEnd = m_capacity;
+spd::GapBuffer::GapBuffer()
+    : m_capacity(DEFAULT_SIZE), m_gapEnd(m_capacity)
+{
+	m_data = SPD_ALLOC(CHAR_TYPE, DEFAULT_SIZE);
     memset(m_data, '\0', m_capacity * sizeof(CHAR_TYPE));
 
     LOG_D("ctor\n");
 }
+
+//spd::GapBuffer::GapBuffer(size_t capacity)
+//    : m_capacity(capacity), m_gapEnd(capacity)
+//{
+//    if (capacity > 0) {
+//		m_data = SPD_ALLOC(CHAR_TYPE, capacity);
+//		memset(m_data, '\0', capacity * sizeof(CHAR_TYPE));
+//
+//		LOG_D("ctor custom capacity: %llu\n", capacity);
+//    }
+//
+//	LOG_D("ctor custom capacity: 0 NO ALLOC\n");
+//}
 
 spd::GapBuffer::~GapBuffer() {
     if (m_data) {
@@ -115,6 +127,15 @@ void spd::GapBuffer::Delete() {
         m_gapEnd++; // move gap end forward to absorb character
     }
     
+    Validate();
+}
+
+void spd::GapBuffer::TruncateAtGap() {
+    // extend gapEnd until its at the end of buffer
+    while (m_gapEnd != m_capacity) {
+        m_data[m_gapEnd++] = '\0';
+    }
+
     Validate();
 }
 
