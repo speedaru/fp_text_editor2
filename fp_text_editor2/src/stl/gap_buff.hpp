@@ -19,6 +19,7 @@ namespace spd {
         GapBuffer& operator=(GapBuffer&& other) noexcept;
 
         void Insert(char c);
+        void InsertRange(const spd::StringView<CHAR_TYPE>& stringView);
         void MoveCursor(size_t pos);
         void BackSpace(); // simulate backspace
         void Delete(); // simulate delete key

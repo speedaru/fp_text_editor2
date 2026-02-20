@@ -15,11 +15,16 @@ static void DumpEditor(const spd::Editor& editor, const fs::path& path) {
 		return;
 	}
 
+	// get editor data
 	spd::Vector<uint8_t> editorData;
 	editor.GetData(editorData);
 
+	// write editor data to file
 	file.write((char*)editorData.Data(), editorData.Size());
 	LOG_D("wrote editor data to in file: %s\n", path.string().c_str());
+
+	// write editor data to console
+	std::cout.write((char*)editorData.Data(), editorData.Size());
 }
 
 int main() {

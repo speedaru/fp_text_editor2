@@ -188,15 +188,9 @@ void spd::Editor::HandleEnter() {
     Line& currentLine = m_lines[m_cursorRow];
     currentLine.MoveCursor(m_cursorCol);
 
-    // get everything after cursor
-    spd::StringView<CHAR_TYPE> suffixView = currentLine.GetSuffixView();
-
-    // copy suffix into new line
+    // get everything after cursor and insert it into a new line
     Line newLine;
-    size_t suffixLen = suffixView.GetLength();
-    for (int i = 0; i < suffixLen; i++) {
-        newLine.Insert(suffixView[i]);
-    }
+    newLine.InsertRange(currentLine.GetSuffixView());
 
     // remove suffix
     currentLine.TruncateAtGap();
@@ -224,20 +218,14 @@ void spd::Editor::MergeLineUp() {
         return;
     }
 
-    // get everything after cursor to merge up
-    spd::StringView<CHAR_TYPE> lineSuffix = currentLine.GetSuffixView();
-    size_t lineSuffixLen = lineSuffix.GetLength();
-
-    // get line above and position cursor at end
+    // get everything after cursor to merge up and insert it into line above
     Line& lineAbove = m_lines[m_cursorRow - 1];
-    size_t originalLineAboveLen = lineAbove.GetSize();
-    lineAbove.MoveCursor(originalLineAboveLen);
-    m_cursorCol = originalLineAboveLen; // place editor cursor at end of line above
+    size_t originalLineAboveLen = lineAbove.GetSize(); // editor cursor needs to be at pos before line merge
+    lineAbove.MoveCursor(originalLineAboveLen); // so it inserts the range at the end
+    lineAbove.InsertRange(currentLine.GetSuffixView());
 
-    // insert text into line above
-    for (int i = 0; i < lineSuffixLen; i++) {
-        lineAbove.Insert(lineSuffix[i]);
-    }
+    // position editor cursor at end of line
+    m_cursorCol = originalLineAboveLen;
 
     // delete current line and move editor cursor up
     m_lines.RemoveAt(m_cursorRow--);
@@ -251,18 +239,10 @@ void spd::Editor::MergeLineDown() {
         return;
     }
 
-    // get next line
+    // get next line string view and insert it into next line
     Line& nextLine = m_lines[m_cursorRow + 1];
     nextLine.MoveCursor(nextLine.GetSize());
-
-    // get string view
-    spd::StringView<CHAR_TYPE> dataToMerge = nextLine.GetPrefixView();
-    size_t dataLen = dataToMerge.GetLength();
-
-    // insert text into line above
-    for (int i = 0; i < dataLen; i++) {
-        currentLine.Insert(dataToMerge[i]);
-    }
+    currentLine.InsertRange(nextLine.GetPrefixView());
 
     // delete next line bcs merged
     m_lines.RemoveAt(m_cursorRow + 1);

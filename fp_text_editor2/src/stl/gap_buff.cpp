@@ -112,6 +112,28 @@ void spd::GapBuffer::Insert(char c) {
     Validate();
 }
 
+void spd::GapBuffer::InsertRange(const spd::StringView<CHAR_TYPE>& stringView) {
+    // grow capacity if needed to fit string view
+    size_t newCapacity = m_capacity;
+    while (m_gapStart + stringView.GetLength() > m_gapEnd + (newCapacity - m_capacity)) {
+        newCapacity = m_capacity + (m_capacity >> 1);
+        LOG_D("new capacity will be %llu to accomodate range to insert\n", newCapacity);
+    }
+
+    // grow only if buffer needs to resize
+    if (newCapacity != m_capacity) {
+        Grow(newCapacity);
+    }
+
+    // insert range (string view)
+    for (size_t i = 0ull; i < stringView.GetLength(); i++) {
+        m_data[m_gapStart++] = stringView.GetData()[i];
+    }
+
+	LOG_D("inserted %llu elements\n", stringView.GetLength());
+    Validate();
+}
+
 void spd::GapBuffer::BackSpace() {
 	if (m_gapStart > 0) {
         m_gapStart--; // move gap back
