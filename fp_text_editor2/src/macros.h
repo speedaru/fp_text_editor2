@@ -12,4 +12,4 @@
 #endif
 
 
-#define __RELATIVE_FILE__ __FILE__ + sizeof(PROJECT_DIR) - 1
+#define __RELATIVE_FILE__ (__FILE__ + sizeof(PROJECT_DIR) - 1)

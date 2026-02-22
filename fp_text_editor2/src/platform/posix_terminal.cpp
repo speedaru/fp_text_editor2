@@ -6,6 +6,8 @@
 #include <termios.h>
 #include <unistd.h>
 
+#include "posix_input_parser.hpp"
+
 spd::Terminal::Terminal() {
     tcgetattr(STDIN_FILENO, &m_originalTermios);
 }
@@ -44,36 +46,18 @@ spd::TermSize spd::Terminal::GetSize() const {
 
 spd::KeyEvent spd::Terminal::ReadKey() const {
     char c;
-    int nread;
-    while ((nread = read(STDIN_FILENO, &c, 1)) != 1) {
-        if (nread == -1 && errno != EAGAIN) return { Key::None, 0 };
-    }
+    while (read(STDIN_FILENO, &c, 1) != 1);
 
     if (c == '\x1b') {
-        char seq[3];
-        if (read(STDIN_FILENO, &seq[0], 1) != 1) return { Key::Escape, 0 };
-        if (read(STDIN_FILENO, &seq[1], 1) != 1) return { Key::Escape, 0 };
-
-        if (seq[0] == '[') {
-            switch (seq[1]) {
-            case 'A': return { Key::ArrowUp, 0 };
-            case 'B': return { Key::ArrowDown, 0 };
-            case 'C': return { Key::ArrowRight, 0 };
-            case 'D': return { Key::ArrowLeft, 0 };
-            case 'H': return { Key::Home, 0 };
-            case 'F': return { Key::End, 0 };
-            }
+        KeyEvent ke = internal::ParseEscapeSequence();
+        if (ke.key == Key::Unknown) {
+            LOG_E("unknown key pressed\n");
         }
 
-        LOG_D("read 0x1b + 0x%02x 0x%02x 0x%02x\n", seq[0], seq[1], seq[2]);
-        return { Key::Escape, 0 };
+        return ke;
     }
 
-    if (c == 127) return { Key::Backspace, 0 };
-    if (c == '\r' || c == '\n') return { Key::Enter, 0 };
-    if (c == ('s' & 0x1f)) return { Key::Ctrl_S, 0 };
-
-    return { (Key)c, c };
+    return internal::MapByteToKey(c);
 }
 
 #endif
