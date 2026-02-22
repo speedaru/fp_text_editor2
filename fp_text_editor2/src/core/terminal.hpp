@@ -1,6 +1,11 @@
 #pragma once
 #include "input.hpp"
 
+#ifdef SPD_PLATFORM_LINUX
+#include <termios.h>
+#include <unistd.h>
+#endif
+
 
 #define ANSI_CLEAR_TO_EOL       "\x1b[K"
 #define ANSI_CLEAR_SCREEN       "\x1b[2J"
