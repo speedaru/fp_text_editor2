@@ -309,7 +309,7 @@ inline bool spd::Vector<T>::Realloc(size_t newCapacity) {
 		// copy old data if new size at least as big
 		if (m_size) {
 			// in case we're shrinking
-			size_t copyCount = min(m_size, newCapacity);
+			size_t copyCount = spd::min(m_size, newCapacity);
 
 			// copy data into new buff
 			for (size_t i = 0; i < copyCount; i++) {

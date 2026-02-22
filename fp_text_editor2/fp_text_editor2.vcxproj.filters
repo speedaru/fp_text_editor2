@@ -80,5 +80,8 @@
     <ClInclude Include="src\stl\string_view.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\stl\math.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

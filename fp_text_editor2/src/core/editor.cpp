@@ -124,7 +124,7 @@ void spd::Editor::Render() {
 
 void spd::Editor::HandleArrow(spd::Key arrowKey) {
     auto clampCol = [&]() {
-        return min(m_cursorCol, m_lines[static_cast<int>(m_cursorRow)].GetSize());
+        return spd::min(m_cursorCol, m_lines[static_cast<int>(m_cursorRow)].GetSize());
 	};
 
     switch (arrowKey) {

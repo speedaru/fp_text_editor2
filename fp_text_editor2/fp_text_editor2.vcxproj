@@ -159,6 +159,7 @@
     <ClInclude Include="src\stl\gap_buff.hpp" />
     <ClInclude Include="src\stl\gap_buff_unit_tests.hpp" />
     <ClInclude Include="src\stl\iterator.hpp" />
+    <ClInclude Include="src\stl\math.hpp" />
     <ClInclude Include="src\stl\string_view.hpp" />
     <ClInclude Include="src\stl\unit_tests.hpp" />
     <ClInclude Include="src\stl\vector_unit_tests.hpp" />

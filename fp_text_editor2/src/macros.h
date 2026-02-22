@@ -4,6 +4,7 @@
 #if defined(_WIN32) || defined(_WIN64)
     #define SPD_PLATFORM_WINDOWS
     #define WIN32_LEAN_AND_MEAN
+	#define NOMINMAX
     #include <windows.h>
 #else
     #define SPD_PLATFORM_LINUX
