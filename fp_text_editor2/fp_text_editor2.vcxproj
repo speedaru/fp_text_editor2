@@ -149,6 +149,7 @@
     <ClCompile Include="src\stl\gap_buff.cpp" />
     <ClCompile Include="src\stl\vector_unit_tests.cpp" />
     <ClCompile Include="src\stl\vector.hpp" />
+    <ClCompile Include="src\utils\string.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common.h" />
@@ -161,10 +162,11 @@
     <ClInclude Include="src\stl\gap_buff.hpp" />
     <ClInclude Include="src\stl\gap_buff_unit_tests.hpp" />
     <ClInclude Include="src\stl\iterator.hpp" />
-    <ClInclude Include="src\stl\math.hpp" />
+    <ClInclude Include="src\utils\math.hpp" />
     <ClInclude Include="src\stl\string_view.hpp" />
     <ClInclude Include="src\stl\unit_tests.hpp" />
     <ClInclude Include="src\stl\vector_unit_tests.hpp" />
+    <ClInclude Include="src\utils\string.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

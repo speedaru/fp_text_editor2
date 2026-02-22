@@ -45,6 +45,9 @@
     <ClCompile Include="src\platform\terminal_common.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\utils\string.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\logging.h">
@@ -86,7 +89,10 @@
     <ClInclude Include="src\stl\string_view.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\stl\math.hpp">
+    <ClInclude Include="src\utils\math.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\string.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

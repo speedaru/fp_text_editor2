@@ -64,6 +64,8 @@ spd::KeyEvent spd::Terminal::ReadKey() const {
             case 'F': return { Key::End, 0 };
             }
         }
+
+        LOG_D("read 0x1b + 0x%02x 0x%02x 0x%02x\n", seq[0], seq[1], seq[2]);
         return { Key::Escape, 0 };
     }
 
