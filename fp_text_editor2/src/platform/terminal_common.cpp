@@ -24,7 +24,7 @@ void spd::Terminal::ShowCursor() {
 }
 
 void spd::Terminal::Write(const char* str) {
-    fwrite(str, 1, strlen(str), stdout);
+    fwrite(str, 1, spd::strlen(str), stdout);
 }
 
 void spd::Terminal::Write(const char* buff, size_t len) {
