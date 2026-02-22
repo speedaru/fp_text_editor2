@@ -9,6 +9,7 @@ namespace spd {
 	public:
 #pragma region constructors
 		Vector();
+		Vector(size_t capacity);
 		~Vector();
 
 		Vector(const Vector& other);
@@ -63,9 +64,9 @@ namespace spd {
 		auto end() const { return spd::iterator<const T>(m_data + m_size); }
 
 #pragma region operators
-		T& operator[](size_t idx) {
+		T& operator[](int idx) {
 #ifdef _DEBUG
-			assert(idx < m_size); // idx in bounds
+			assert(idx >= 0 && idx < m_size); // idx in bounds
 #endif
 			return m_data[idx];
 		}
@@ -111,9 +112,20 @@ inline spd::Vector<T>::Vector() {
 }
 
 template<typename T>
+inline spd::Vector<T>::Vector(size_t capacity) {
+	Realloc(capacity);
+	LOG_T("created vector at 0x%p, initial capacity: %llu\n", m_data, m_capacity);
+}
+
+template<typename T>
 inline spd::Vector<T>::~Vector() {
 	DestroyData(m_data, m_size);
 	LOG_D("destroyed vector data\n");
+
+	if (m_data) {
+		SPD_FREE(m_data);
+	}
+	LOG_D("freed vector\n");
 }
 
 template<typename T>

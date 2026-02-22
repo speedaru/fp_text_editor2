@@ -45,7 +45,7 @@ namespace spd {
         void ShiftGap(size_t newGapStart);
 
     private:
-        static const size_t DEFAULT_SIZE{ 64ull };
+        static const size_t DEFAULT_SIZE{ 32ull };
 
         CHAR_TYPE* m_data{ nullptr };
         size_t m_capacity{ 0 };

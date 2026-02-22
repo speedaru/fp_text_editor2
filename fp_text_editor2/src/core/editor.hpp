@@ -20,12 +20,16 @@ namespace spd {
 		void ProcessInput();
         void Render();
         
-        // Command Helpers
+        // handle keys
         void HandleArrow(spd::Key arrowKey);
-        void InsertChar(char c);
         void HandleBackspace();
         void HandleDelete();
         void HandleEnter();
+        void HandleHome();
+        void HandleEnd();
+
+        // Command Helpers
+        void InsertChar(char c);
 
         void MergeLineUp();
         void MergeLineDown();

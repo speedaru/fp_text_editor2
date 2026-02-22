@@ -145,6 +145,7 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\logging.cpp" />
     <ClCompile Include="src\stl\gap_buff.cpp" />
+    <ClCompile Include="src\stl\vector_unit_tests.cpp" />
     <ClCompile Include="src\stl\vector.hpp" />
   </ItemGroup>
   <ItemGroup>

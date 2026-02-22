@@ -4,8 +4,7 @@
 
 spd::Editor::Editor() {
 	// start with one empty line
-    Line initialLine;
-    m_lines.EmplaceBack(std::move(initialLine));
+    m_lines.EmplaceBack();
     
     LOG_I("Editor initialized with 1 line.\n");
 }
@@ -83,6 +82,9 @@ void spd::Editor::ProcessInput() {
         case Key::Backspace:    HandleBackspace(); break;
         case Key::Enter:        HandleEnter(); break;
 
+        case Key::Home: HandleHome(); break;
+        case Key::End:  HandleEnd(); break;
+
         default:
             if ((uint32_t)e.key < 1000 && e.c != 0) {
                 InsertChar(e.c);
@@ -122,7 +124,7 @@ void spd::Editor::Render() {
 
 void spd::Editor::HandleArrow(spd::Key arrowKey) {
     auto clampCol = [&]() {
-        return min(m_cursorCol, m_lines[m_cursorRow].GetSize());
+        return min(m_cursorCol, m_lines[static_cast<int>(m_cursorRow)].GetSize());
 	};
 
     switch (arrowKey) {
@@ -139,7 +141,7 @@ void spd::Editor::HandleArrow(spd::Key arrowKey) {
 		}
         break;
     case Key::ArrowRight:
-		if (m_cursorCol < m_lines[m_cursorRow].GetSize()) {
+		if (m_cursorCol < m_lines[static_cast<int>(m_cursorRow)].GetSize()) {
 			m_cursorCol++;
 		}
         break;
@@ -151,16 +153,9 @@ void spd::Editor::HandleArrow(spd::Key arrowKey) {
 	}
 }
 
-void spd::Editor::InsertChar(char c) {
-	Line& currentLine = m_lines[m_cursorRow];
-    currentLine.MoveCursor(m_cursorCol);
-    currentLine.Insert(c);
-    LOG_D("inserted char: %c at %llu:%llu\n", c, m_cursorRow, m_cursorCol);
-    m_cursorCol++;
-}
-
 void spd::Editor::HandleBackspace() {
-    Line& currentLine = m_lines[m_cursorRow];
+    Line& currentLine = m_lines[static_cast<int>(m_cursorRow)];
+    LOG_D("pressed backspace at col %llu\n", m_cursorCol);
     currentLine.MoveCursor(m_cursorCol);
 
     if (m_cursorCol == 0) {
@@ -173,7 +168,8 @@ void spd::Editor::HandleBackspace() {
 }
 
 void spd::Editor::HandleDelete() {
-    Line& currentLine = m_lines[m_cursorRow];
+    Line& currentLine = m_lines[static_cast<int>(m_cursorRow)];
+    LOG_D("pressed delet at col %llu\n", m_cursorCol);
     currentLine.MoveCursor(m_cursorCol);
 
     if (m_cursorCol == currentLine.GetSize()) {
@@ -185,7 +181,7 @@ void spd::Editor::HandleDelete() {
 }
 
 void spd::Editor::HandleEnter() {
-    Line& currentLine = m_lines[m_cursorRow];
+    Line& currentLine = m_lines[static_cast<int>(m_cursorRow)];
     currentLine.MoveCursor(m_cursorCol);
 
     // get everything after cursor and insert it into a new line
@@ -209,9 +205,28 @@ void spd::Editor::HandleEnter() {
     }
 }
 
+void spd::Editor::HandleHome() {
+    m_cursorCol = 0;
+    LOG_D("pressed HOME. moved cursor to beginning of line\n");
+}
+
+void spd::Editor::HandleEnd() {
+    m_cursorCol = m_lines[static_cast<int>(m_cursorRow)].GetSize();
+    LOG_D("pressed END. moved cursor to end of line: %llu\n", m_cursorCol);
+}
+
+
+void spd::Editor::InsertChar(char c) {
+	Line& currentLine = m_lines[static_cast<int>(m_cursorRow)];
+    currentLine.MoveCursor(m_cursorCol);
+    currentLine.Insert(c);
+    LOG_D("inserted char: %c at %llu:%llu\n", c, m_cursorRow, m_cursorCol);
+    m_cursorCol++;
+}
+
 
 void spd::Editor::MergeLineUp() {
-    Line& currentLine = m_lines[m_cursorRow];
+    Line& currentLine = m_lines[static_cast<int>(m_cursorRow)];
 
     // can't merge up because alr at line 0
     if (m_cursorRow == 0) {
@@ -219,7 +234,7 @@ void spd::Editor::MergeLineUp() {
     }
 
     // get everything after cursor to merge up and insert it into line above
-    Line& lineAbove = m_lines[m_cursorRow - 1];
+    Line& lineAbove = m_lines[static_cast<int>(m_cursorRow) - 1];
     size_t originalLineAboveLen = lineAbove.GetSize(); // editor cursor needs to be at pos before line merge
     lineAbove.MoveCursor(originalLineAboveLen); // so it inserts the range at the end
     lineAbove.InsertRange(currentLine.GetSuffixView());
@@ -232,7 +247,7 @@ void spd::Editor::MergeLineUp() {
 }
 
 void spd::Editor::MergeLineDown() {
-    Line& currentLine = m_lines[m_cursorRow];
+    Line& currentLine = m_lines[static_cast<int>(m_cursorRow)];
 
     // can't merge down because alr at last line
     if (m_cursorRow + 1 == m_lines.Size()) {
@@ -240,7 +255,7 @@ void spd::Editor::MergeLineDown() {
     }
 
     // get next line string view and insert it into next line
-    Line& nextLine = m_lines[m_cursorRow + 1];
+    Line& nextLine = m_lines[static_cast<int>(m_cursorRow) + 1];
     nextLine.MoveCursor(nextLine.GetSize());
     currentLine.InsertRange(nextLine.GetPrefixView());
 

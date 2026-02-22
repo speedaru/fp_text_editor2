@@ -8,6 +8,24 @@
 namespace fs = std::filesystem;
 
 
+static void DumpEditor(const spd::Editor& editor, const fs::path& path);
+
+
+int main() {
+	logging::LoggerInit("logging.txt");
+
+	//spd::unit_test::Vector();
+	//spd::unit_test::GapBufferTests();
+
+	spd::Editor editor;
+	editor.Run();
+
+	DumpEditor(editor, "editor_text.txt");
+
+	logging::LoggerShutdown();
+}
+
+
 static void DumpEditor(const spd::Editor& editor, const fs::path& path) {
 	std::ofstream file(path, std::ios::binary);
 	if (!file) {
@@ -25,18 +43,4 @@ static void DumpEditor(const spd::Editor& editor, const fs::path& path) {
 
 	// write editor data to console
 	std::cout.write((char*)editorData.Data(), editorData.Size());
-}
-
-int main() {
-	logging::LoggerInit("logging.txt");
-
-	spd::unit_test::Vector();
-	spd::unit_test::GapBufferTests();
-
-	spd::Editor editor;
-	editor.Run();
-
-	DumpEditor(editor, "editor_text.txt");
-
-	logging::LoggerShutdown();
 }

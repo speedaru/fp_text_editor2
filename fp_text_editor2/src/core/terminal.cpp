@@ -117,16 +117,18 @@ spd::KeyEvent spd::Terminal::ReadKey() const {
 
             // handle special keys
             switch (ke.wVirtualKeyCode) {
-                case VK_UP:     result.key = Key::ArrowUp;    break;
-                case VK_DOWN:   result.key = Key::ArrowDown;  break;
-                case VK_LEFT:   result.key = Key::ArrowLeft;  break;
-                case VK_RIGHT:  result.key = Key::ArrowRight; break;
-                case VK_BACK:   result.key = Key::Backspace;  break;
-                case VK_RETURN: result.key = Key::Enter;      break;
-                case VK_DELETE: result.key = Key::Delete;     break;
-                case VK_ESCAPE: result.key = Key::Escape;     break;
-                case VK_PRIOR:  result.key = Key::PageUp;     break;
-                case VK_NEXT:   result.key = Key::PageDown;   break;
+                case VK_UP:     result.key = Key::ArrowUp;      break;
+                case VK_DOWN:   result.key = Key::ArrowDown;    break;
+                case VK_LEFT:   result.key = Key::ArrowLeft;    break;
+                case VK_RIGHT:  result.key = Key::ArrowRight;   break;
+                case VK_BACK:   result.key = Key::Backspace;    break;
+                case VK_RETURN: result.key = Key::Enter;        break;
+                case VK_DELETE: result.key = Key::Delete;       break;
+                case VK_ESCAPE: result.key = Key::Escape;       break;
+                case VK_PRIOR:  result.key = Key::PageUp;       break;
+                case VK_NEXT:   result.key = Key::PageDown;     break;
+                case VK_HOME:   result.key = Key::Home;         break;
+                case VK_END:    result.key = Key::End;          break;
                 case 'S': if (ke.dwControlKeyState & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) 
                              result.key = Key::Ctrl_S; break;
             }
