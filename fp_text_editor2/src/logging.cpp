@@ -43,21 +43,27 @@ void logging::LogOutput(LogLevel level, const char* file, int line, const char* 
 		level_strings[level], file, line, func
 	);
 
-    // Print actual message
-	va_list args;
-	va_start(args, fmt);
-    int size = vsnprintf(nullptr, 0, fmt, args);
+    va_list args;
+    va_start(args, fmt);
 
-    char* buff = (char*)malloc(size + 1);
-    if (!buff) {
+    // create a copy of args to calc size
+	va_list args_copy;
+    va_copy(args_copy, args);
+    int size = vsnprintf(nullptr, 0, fmt, args_copy);
+    va_end(args_copy); // Always end the copy
+
+    if (size < 0) {
+        va_end(args);
         return;
     }
 
-    vsnprintf(buff, (size_t)size + 1, fmt, args);
+    char* buff = (char*)malloc(size + 1);
+    if (buff) {
+		vsnprintf(buff, (size_t)size + 1, fmt, args);
+		logFile.write(buff, size);
+		free(buff);
+    }
+
 	va_end(args);
-
-    logFile.write(buff, size);
-
-    free(buff);
 	logFile.flush();
 }

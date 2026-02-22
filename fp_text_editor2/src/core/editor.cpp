@@ -107,7 +107,7 @@ void spd::Editor::Render() {
         spd::StringView<char> suffix = it->GetSuffixView();
         m_terminal.Write(suffix.GetData(), suffix.GetLength());
 
-        m_terminal.Write(ANSI_CLEAR_TO_EOL "\n");
+        m_terminal.Write(ANSI_CLEAR_TO_EOL "\r\n");
     }
 
     // clear deleted lines
