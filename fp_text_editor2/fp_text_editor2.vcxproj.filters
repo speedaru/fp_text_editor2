@@ -27,9 +27,6 @@
     <ClCompile Include="src\stl\gap_buff.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\terminal.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\core\editor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -37,6 +34,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\stl\vector_unit_tests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\platform\win32_terminal.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\platform\posix_terminal.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\platform\terminal_common.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

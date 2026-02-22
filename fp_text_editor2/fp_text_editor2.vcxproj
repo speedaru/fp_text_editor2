@@ -141,9 +141,11 @@
   <ItemGroup>
     <ClCompile Include="src\core\editor.cpp" />
     <ClCompile Include="src\core\input.cpp" />
-    <ClCompile Include="src\core\terminal.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\logging.cpp" />
+    <ClCompile Include="src\platform\posix_terminal.cpp" />
+    <ClCompile Include="src\platform\terminal_common.cpp" />
+    <ClCompile Include="src\platform\win32_terminal.cpp" />
     <ClCompile Include="src\stl\gap_buff.cpp" />
     <ClCompile Include="src\stl\vector_unit_tests.cpp" />
     <ClCompile Include="src\stl\vector.hpp" />

@@ -7,7 +7,11 @@ void spd::Terminal::Clear() {
 
 void spd::Terminal::SetCursorPos(int row, int col) {
     char buf[32]{ 0 };
+#ifdef SPD_PLATFORM_WINDOWS
+    sprintf_s(buf, ANSI_SET_CURSOR_POS, row + 1, col + 1);
+#else
     sprintf(buf, ANSI_SET_CURSOR_POS, row + 1, col + 1);
+#endif
     Write(buf);
 }
 

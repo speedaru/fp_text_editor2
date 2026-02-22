@@ -29,7 +29,12 @@ void logging::LogOutput(LogLevel level, const char* file, int line, const char* 
     // Get current time
     time_t now = time(NULL);
     tm t{};
+
+#ifdef _WIN32
     localtime_s(&t, &now);
+#else
+    localtime_r(&now, &t); // Note: Linux arguments are swapped compared to Windows
+#endif
     
     // Print Header: [TIME] [LEVEL] [FILE:LINE in FUNC]
 	logFile << std::format(
