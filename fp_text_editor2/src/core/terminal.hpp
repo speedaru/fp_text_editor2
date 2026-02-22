@@ -2,7 +2,12 @@
 #include "input.hpp"
 
 
-#define ANSI_CLEAR_TO_EOL "\x1b[K"
+#define ANSI_CLEAR_TO_EOL       "\x1b[K"
+#define ANSI_CLEAR_SCREEN       "\x1b[2J"
+#define ANSI_SET_CURSOR_HOME    "\x1b[H"
+#define ANSI_SET_CURSOR_POS     "\x1b[%d;%dH"
+#define ANSI_HIDE_CURSOR        "\x1b[?25l"
+#define ANSI_SHOW_CURSOR        "\x1b[?25h"
 
 namespace spd {
     struct TermSize {
@@ -39,7 +44,7 @@ namespace spd {
         HANDLE m_hOut;
         HANDLE m_hIn;
         DWORD m_originalOutMode;
-        DWORD m_originalInMode;
+        DWORD m_originalInMode{};
 #else
         struct termios m_originalTermios;
 #endif
