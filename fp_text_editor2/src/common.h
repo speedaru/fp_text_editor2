@@ -1,6 +1,6 @@
 #pragma once
 #include <cassert>
-#include <memory>
+#include <cstring>
 
 #include "macros.h"
 #include "logging.h"
