@@ -43,6 +43,27 @@ static WORD GetWin32Color(spd::TermColor color, bool foreground, bool background
     return attribs;
 }
 
+static void SetTerminalColor(HANDLE hOut, SMALL_RECT rect, WORD attrib) {
+    // iterate through each row in the rectangle
+    for (SHORT y = rect.Top; y <= rect.Bottom; ++y) {
+        COORD startCoord = { rect.Left, y };
+        DWORD numCellsToFill = (DWORD)(rect.Right - rect.Left);
+        DWORD cellsWritten = 0;
+
+        // apply the attribute to the specific row
+        if (!FillConsoleOutputAttribute(
+                hOut,           // handle to console screen buffer
+                attrib,           // color attribute to write
+                numCellsToFill,   // number of cells to write to
+                startCoord,       // starting coordinate
+                &cellsWritten     // receive number of cells written
+            )) 
+        {
+            LOG_E("Failed to set background color for row %d", y);
+        }
+    }
+}
+
 
 spd::Terminal::Terminal() {
     m_hOut = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -115,27 +136,6 @@ spd::KeyEvent spd::Terminal::ReadKey() const {
             }
 
             if (result.key != Key::None) return result;
-        }
-    }
-}
-
-static void SetTerminalColor(HANDLE hOut, SMALL_RECT rect, WORD attrib) {
-    // iterate through each row in the rectangle
-    for (SHORT y = rect.Top; y <= rect.Bottom; ++y) {
-        COORD startCoord = { rect.Left, y };
-        DWORD numCellsToFill = (DWORD)(rect.Right - rect.Left);
-        DWORD cellsWritten = 0;
-
-        // apply the attribute to the specific row
-        if (!FillConsoleOutputAttribute(
-                hOut,           // handle to console screen buffer
-                attrib,           // color attribute to write
-                numCellsToFill,   // number of cells to write to
-                startCoord,       // starting coordinate
-                &cellsWritten     // receive number of cells written
-            )) 
-        {
-            LOG_E("Failed to set background color for row %d", y);
         }
     }
 }

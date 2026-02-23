@@ -2,7 +2,6 @@
 
 
 void spd::Terminal::Clear() {
-    //Write(ANSI_CLEAR_SCREEN ANSI_SET_CURSOR_HOME);
 #ifdef SPD_PLATFORM_WINDOWS
     TermSize size = GetSize();
     DWORD consoleSize = size.rows * size.cols;
@@ -12,7 +11,7 @@ void spd::Terminal::Clear() {
     FillConsoleOutputCharacter(m_hOut, L' ', consoleSize, topLeft, &written);
     SetConsoleCursorPosition(m_hOut, topLeft);
 #else
-    system("clear")
+    Write(ANSI_CLEAR_SCREEN ANSI_SET_CURSOR_HOME);
 #endif
 }
 
