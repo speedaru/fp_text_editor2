@@ -2,7 +2,7 @@
 #include "mem.h"
 
 
-spd::Editor::Editor() {
+spd::Editor::Editor() : m_renderer(m_terminal) {
 	// start with one empty line
     m_lines.EmplaceBack();
     
@@ -20,6 +20,42 @@ void spd::Editor::Run() {
 
     m_terminal.DisableRawMode();
     m_terminal.Clear();
+}
+
+void spd::Editor::LoadData(const spd::Vector<CHAR_TYPE>& data) {
+    m_lines.Clear();
+
+	auto current = data.begin();
+    const auto end = data.end();
+    bool endsWithNewLine = false; // file ends with newline
+
+    while (current != end) {
+        // find next newline or end of data
+        auto lineEnd = std::find(current, end, '\n');
+
+        // create line and insert line data
+        Line newLine;
+        newLine.InsertRange(spd::StringView<CHAR_TYPE>(current, lineEnd));
+        m_lines.PushBack(std::move(newLine));
+
+        // put next line start after newline char if we're not at end of data
+        if (lineEnd != end) {
+			current = lineEnd + 1;
+            endsWithNewLine = (current == end); // if current is now end it means file ends with newline
+        }
+        else {
+            current = lineEnd;
+        }
+    }
+
+    if (endsWithNewLine) {
+        m_lines.EmplaceBack();
+    }
+
+    // ensure there is always at least one empty line
+    if (m_lines.Empty()) {
+        m_lines.PushBack(Line());
+    }
 }
 
 void spd::Editor::GetData(spd::Vector<uint8_t>& outData) const {
@@ -75,7 +111,7 @@ void spd::Editor::ProcessInput() {
         case Key::ArrowDown:
         case Key::ArrowLeft:
         case Key::ArrowRight:
-            HandleArrow(e.key);
+            HandleArrow(e);
             break;
 
         case Key::Delete:       HandleDelete(); break;
@@ -94,40 +130,37 @@ void spd::Editor::ProcessInput() {
 }
 
 void spd::Editor::Render() {
-    // hide cursor and place at origin
-	m_terminal.HideCursor();
-	m_terminal.SetCursorPos(0, 0);
-
-    // Simple Render: Draw every line
-    //for (size_t i = 0; i < m_lines.Size(); i++) {
-    for (spd::iterator<spd::GapBuffer> it = m_lines.begin(); it != m_lines.end(); it++) {
-        spd::StringView<char> prefix = it->GetPrefixView();
-        m_terminal.Write(prefix.GetData(), prefix.GetLength());
-
-        spd::StringView<char> suffix = it->GetSuffixView();
-        m_terminal.Write(suffix.GetData(), suffix.GetLength());
-
-        m_terminal.Write(ANSI_CLEAR_TO_EOL "\r\n");
-    }
-
-    // clear deleted lines
-    for (size_t i = m_lines.Size(); i < m_prevLineCount; i++) {
-        m_terminal.Write(ANSI_CLEAR_TO_EOL "\n");
-    }
-    m_prevLineCount = m_lines.Size(); // reset prev line count
-
-    // set cursor pos
-    m_terminal.SetCursorPos((int)m_cursorRow, (int)m_cursorCol);
-    m_terminal.ShowCursor();
-    m_terminal.Flush();
+    m_renderer.Render(m_lines, m_cursorRow, m_cursorCol);
 }
 
-void spd::Editor::HandleArrow(spd::Key arrowKey) {
+void spd::Editor::HandleArrow(spd::KeyEvent event) {
     auto clampCol = [&]() {
         return spd::min(m_cursorCol, m_lines[static_cast<int>(m_cursorRow)].GetSize());
 	};
 
-    switch (arrowKey) {
+    // if control pressed
+    if (event.keyModifiers & KeyModifiers::Ctrl) {
+        switch (event.key) {
+        case Key::ArrowUp:
+            LOG_D("scrolling up\n");
+            m_renderer.VerticalScroll(-1);
+            break;
+        case Key::ArrowDown:
+            LOG_D("scrolling down\n");
+            m_renderer.VerticalScroll(1);
+            break;
+        case Key::ArrowLeft:
+            LOG_D("scrolling left\n");
+            m_renderer.HorizontalScroll(-1);
+            break;
+        case Key::ArrowRight:
+            LOG_D("scrolling right\n");
+            m_renderer.HorizontalScroll(1);
+            break;
+        }
+    }
+
+    switch (event.key) {
     case Key::ArrowUp:
 		if (m_cursorRow > 0) {
 			m_cursorRow--;
@@ -247,7 +280,7 @@ void spd::Editor::MergeLineUp() {
 }
 
 void spd::Editor::MergeLineDown() {
-    Line& currentLine = m_lines[static_cast<int>(m_cursorRow)];
+    Line& currentLine = m_lines[(int)m_cursorRow];
 
     // can't merge down because alr at last line
     if (m_cursorRow + 1 == m_lines.Size()) {
@@ -255,7 +288,7 @@ void spd::Editor::MergeLineDown() {
     }
 
     // get next line string view and insert it into next line
-    Line& nextLine = m_lines[static_cast<int>(m_cursorRow) + 1];
+    Line& nextLine = m_lines[(int)m_cursorRow + 1];
     nextLine.MoveCursor(nextLine.GetSize());
     currentLine.InsertRange(nextLine.GetPrefixView());
 

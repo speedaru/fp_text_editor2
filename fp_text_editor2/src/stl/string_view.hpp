@@ -1,5 +1,6 @@
 #pragma once
 #include "common.h"
+#include "iterator.hpp"
 
 
 namespace spd {
@@ -8,6 +9,7 @@ namespace spd {
 	public:
 		StringView();
 		StringView(const CH* buff, size_t length);
+		StringView(const spd::const_iterator<CH>& start, const spd::const_iterator<CH>& end);
 		StringView(const CH* cstr);
 
 		// non null terminated cstr
@@ -21,9 +23,17 @@ namespace spd {
 			return m_data[idx];
 		}
 
+		template <typename T>
+		operator StringView<T>() {
+			// new type is same size or divisible by len
+			assert(m_length % sizeof(T) == 0);
+			size_t newLen = m_length / sizeof(T);
+			return StringView(reinterpret_cast<const T*>(m_data), newLen);
+		}
+
 	private:
-		const CH* m_data{};
-		size_t m_length{};
+		const CH* m_data;
+		size_t m_length;
 	};
 }
 
@@ -35,6 +45,14 @@ inline spd::StringView<CH>::StringView() : m_data(nullptr), m_length(0ull) { }
 
 template<typename CH>
 inline spd::StringView<CH>::StringView(const CH* buff, size_t length) : m_data(buff), m_length(length) { }
+
+template<typename CH>
+inline spd::StringView<CH>::StringView(const spd::const_iterator<CH>& start, const spd::const_iterator<CH>& end) {
+	assert(end >= start);
+	size_t length = end - start;
+	m_data = start;
+	m_length = length;
+}
 
 template<typename CH>
 inline spd::StringView<CH>::StringView(const CH* cstr) : m_data(cstr) {

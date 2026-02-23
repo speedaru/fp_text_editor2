@@ -141,8 +141,10 @@
   <ItemGroup>
     <ClCompile Include="src\core\editor.cpp" />
     <ClCompile Include="src\core\input.cpp" />
+    <ClCompile Include="src\core\renderer.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\logging.cpp" />
+    <ClCompile Include="src\platform\posix_input_parser.cpp" />
     <ClCompile Include="src\platform\posix_terminal.cpp" />
     <ClCompile Include="src\platform\terminal_common.cpp" />
     <ClCompile Include="src\platform\win32_terminal.cpp" />
@@ -156,9 +158,11 @@
     <ClInclude Include="src\core\editor.hpp" />
     <ClInclude Include="src\core\input.hpp" />
     <ClInclude Include="src\core\mem.h" />
+    <ClInclude Include="src\core\renderer.hpp" />
     <ClInclude Include="src\core\terminal.hpp" />
     <ClInclude Include="src\macros.h" />
     <ClInclude Include="src\logging.h" />
+    <ClInclude Include="src\platform\posix_input_parser.hpp" />
     <ClInclude Include="src\stl\gap_buff.hpp" />
     <ClInclude Include="src\stl\gap_buff_unit_tests.hpp" />
     <ClInclude Include="src\stl\iterator.hpp" />

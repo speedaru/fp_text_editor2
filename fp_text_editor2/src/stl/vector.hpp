@@ -40,34 +40,36 @@ namespace spd {
 		bool RemoveAt(size_t idx);
 
 		bool PopBack();
+
+		void Clear();
+#pragma endregion
+
+
+#pragma region accesors
+		T& Front() const;
+		T& Back() const;
 #pragma endregion
 
 
 #pragma region getters
-		inline size_t Size() const {
-			return m_size;
-		}
+		inline size_t Size() const { return m_size; }
 
-		inline size_t Capacity() const {
-			return m_capacity;
-		}
+		inline size_t Capacity() const { return m_capacity; }
 
-		inline const T* Data() const {
-			return const_cast<const T*>(m_data);
-		}
+		inline T* Data() const { return m_data; }
+
+		inline bool Empty() const { return !m_size; }
 #pragma endregion
 
 		auto begin() { return spd::iterator<T>(m_data); }
 		auto end() { return spd::iterator<T>(m_data + m_size); }
 
-		auto begin() const { return spd::iterator<const T>(m_data); }
-		auto end() const { return spd::iterator<const T>(m_data + m_size); }
+		auto begin() const { return spd::const_iterator<T>(m_data); }
+		auto end() const { return spd::const_iterator<T>(m_data + m_size); }
 
 #pragma region operators
-		T& operator[](int idx) {
-#ifdef _DEBUG
+		T& operator[](int idx) const {
 			assert(idx >= 0 && idx < m_size); // idx in bounds
-#endif
 			return m_data[idx];
 		}
 #pragma endregion
@@ -90,9 +92,7 @@ namespace spd {
 		// calls destructor for each data
 		void DestroyData(T* data, size_t size);
 
-		bool IsAlias(const T& element) const {
-			return m_data <= &element && &element < m_data + m_size;
-		}
+		bool IsAlias(const T& element) const { return m_data <= &element && &element < m_data + m_size; }
 
 	protected:
 		size_t m_size{};
@@ -291,8 +291,30 @@ inline bool spd::Vector<T>::PopBack() {
 	return RemoveAt(m_size - 1);
 }
 
+template<typename T>
+inline void spd::Vector<T>::Clear() {
+	DestroyData(m_data, m_size);
+	m_size = 0;
+}
+
 #pragma endregion
 
+
+#pragma region accesors
+
+template<typename T>
+inline T& spd::Vector<T>::Front() const {
+	assert(m_size > 0);
+	return m_data[0];
+}
+
+template<typename T>
+inline T& spd::Vector<T>::Back() const {
+	assert(m_size > 0);
+	return m_data[m_size - 1];
+}
+
+#pragma endregion
 
 
 #pragma region private
@@ -418,8 +440,8 @@ inline void spd::Vector<T>::DestroyData(T* data, size_t size) {
 		return;
 	}
 
-	for (size_t i = 0ull; i < size; i++) {
-		data[i].~T();
+	while (size) {
+		data[--size].~T();
 	}
 	LOG_T("destroyed %llu objects at 0x%p\n", size, data);
 }

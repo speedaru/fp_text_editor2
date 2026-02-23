@@ -2,6 +2,7 @@
 #include "stl/vector.hpp"
 #include "stl/gap_buff.hpp"
 #include "terminal.hpp"
+#include "renderer.hpp"
 
 
 namespace spd {
@@ -14,6 +15,7 @@ namespace spd {
 
 		void Run();
 
+        void LoadData(const spd::Vector<CHAR_TYPE>& data);
         void GetData(spd::Vector<uint8_t>& outData) const;
 
     private:
@@ -21,7 +23,7 @@ namespace spd {
         void Render();
         
         // handle keys
-        void HandleArrow(spd::Key arrowKey);
+        void HandleArrow(spd::KeyEvent event);
         void HandleBackspace();
         void HandleDelete();
         void HandleEnter();
@@ -36,13 +38,11 @@ namespace spd {
 
     private:
         Terminal m_terminal;
+        Renderer m_renderer;
         spd::Vector<Line> m_lines;
         
         size_t m_cursorRow{ 0 };
         size_t m_cursorCol{ 0 };
         bool m_isRunning{ true };
-        
-        // so we can clear empty lines after deleting them
-        size_t m_prevLineCount{ 0ull };
 	};
 }

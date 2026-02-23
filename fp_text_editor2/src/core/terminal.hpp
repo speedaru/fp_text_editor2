@@ -20,6 +20,35 @@ namespace spd {
         int cols{};
     };
 
+	typedef DWORD TermColor;
+	namespace TermColors {
+        constexpr TermColor Light = 0x1;
+
+        // normal colors
+		constexpr TermColor DarkRed = 0x2;
+		constexpr TermColor DarkGreen = 0x4;
+		constexpr TermColor DarkBlue = 0x8;
+
+        constexpr TermColor LightGray = DarkRed | DarkGreen | DarkBlue;
+        constexpr TermColor White = DarkRed | DarkGreen | DarkBlue | Light;
+        constexpr TermColor Black = 0;
+
+        // light normal colors
+		constexpr TermColor LighRed = DarkRed | Light;
+		constexpr TermColor LighGreen = DarkGreen | Light;
+		constexpr TermColor LighBlue = DarkBlue | Light;
+
+        // light mix of colors
+		constexpr TermColor Beige = DarkRed | DarkGreen | Light;
+		constexpr TermColor Pink = DarkRed | DarkBlue | Light;
+		constexpr TermColor Cyan = DarkGreen | DarkBlue | Light;
+
+        // dark mix of colors
+		constexpr TermColor Yellow = DarkRed | DarkGreen;
+		constexpr TermColor Magenta = DarkRed | DarkBlue;
+		constexpr TermColor Turquoise = DarkGreen | DarkBlue;
+	}
+
     class Terminal {
     public:
         Terminal();
@@ -40,9 +69,14 @@ namespace spd {
         KeyEvent ReadKey() const;
 
         // Output
-        void Write(const char* str);
-        void Write(const char* buff, size_t len);
+        size_t Write(const char* str);
+        size_t Write(const char* buff, size_t len);
         void Flush();
+
+        // colors
+        void SetForeColor(SMALL_RECT rect, TermColor color) const;
+        void SetBgColor(SMALL_RECT rect, TermColor color) const;
+        void SetColor(SMALL_RECT rect, spd::TermColor foreColor, spd::TermColor bgColor) const;
 
     private:
 #ifdef SPD_PLATFORM_WINDOWS

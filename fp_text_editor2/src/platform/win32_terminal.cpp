@@ -3,6 +3,47 @@
 
 #ifdef SPD_PLATFORM_WINDOWS
 
+static WORD s_clearForeground = ~(FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+static WORD s_clearBackground = ~(BACKGROUND_RED | BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_INTENSITY);
+static WORD s_clearColor = s_clearForeground & s_clearBackground;
+
+static WORD GetWin32Color(spd::TermColor color, bool foreground, bool background) {
+    WORD attribs = 0u;
+
+    if (foreground) {
+        if (color & spd::TermColors::DarkRed) {
+            attribs |= FOREGROUND_RED;
+        }
+        if (color & spd::TermColors::DarkGreen) {
+            attribs |= FOREGROUND_GREEN;
+        }
+        if (color & spd::TermColors::DarkBlue) {
+            attribs |= FOREGROUND_BLUE;
+        }
+        if (color & spd::TermColors::Light) {
+            attribs |= FOREGROUND_INTENSITY;
+        }
+    }
+
+    if (background) {
+        if (color & spd::TermColors::DarkRed) {
+            attribs |= BACKGROUND_RED;
+        }
+        if (color & spd::TermColors::DarkGreen) {
+            attribs |= BACKGROUND_GREEN;
+        }
+        if (color & spd::TermColors::DarkBlue) {
+            attribs |= BACKGROUND_BLUE;
+        }
+        if (color & spd::TermColors::Light) {
+            attribs |= BACKGROUND_INTENSITY;
+        }
+    }
+
+    return attribs;
+}
+
+
 spd::Terminal::Terminal() {
     m_hOut = GetStdHandle(STD_OUTPUT_HANDLE);
     m_hIn = GetStdHandle(STD_INPUT_HANDLE);
@@ -66,12 +107,52 @@ spd::KeyEvent spd::Terminal::ReadKey() const {
                 case VK_ESCAPE: result.key = Key::Escape;       break;
                 case VK_HOME:   result.key = Key::Home;         break;
                 case VK_END:    result.key = Key::End;          break;
-                case 'S': if (ke.dwControlKeyState & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) 
-                             result.key = Key::Ctrl_S; break;
             }
+
+            // check control pressed
+            if (ke.dwControlKeyState & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) {
+                result.keyModifiers |= KeyModifiers::Ctrl;
+            }
+
             if (result.key != Key::None) return result;
         }
     }
+}
+
+static void SetTerminalColor(HANDLE hOut, SMALL_RECT rect, WORD attrib) {
+    // iterate through each row in the rectangle
+    for (SHORT y = rect.Top; y <= rect.Bottom; ++y) {
+        COORD startCoord = { rect.Left, y };
+        DWORD numCellsToFill = (DWORD)(rect.Right - rect.Left);
+        DWORD cellsWritten = 0;
+
+        // apply the attribute to the specific row
+        if (!FillConsoleOutputAttribute(
+                hOut,           // handle to console screen buffer
+                attrib,           // color attribute to write
+                numCellsToFill,   // number of cells to write to
+                startCoord,       // starting coordinate
+                &cellsWritten     // receive number of cells written
+            )) 
+        {
+            LOG_E("Failed to set background color for row %d", y);
+        }
+    }
+}
+
+void spd::Terminal::SetForeColor(SMALL_RECT rect, spd::TermColor color) const {
+    WORD attrib = GetWin32Color(color, true, false);
+    SetTerminalColor(m_hOut, rect, attrib);
+}
+
+void spd::Terminal::SetBgColor(SMALL_RECT rect, spd::TermColor color) const {
+    WORD attrib = GetWin32Color(color, false, true);
+    SetTerminalColor(m_hOut, rect, attrib);
+}
+
+void spd::Terminal::SetColor(SMALL_RECT rect, spd::TermColor foreColor, spd::TermColor bgColor) const {
+    WORD attrib = GetWin32Color(foreColor, true, false) | GetWin32Color(bgColor, false, true);
+    SetTerminalColor(m_hOut, rect, attrib);
 }
 
 #endif // SPD_PLATFORM_WINDOWS

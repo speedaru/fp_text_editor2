@@ -116,7 +116,7 @@ void spd::GapBuffer::InsertRange(const spd::StringView<CHAR_TYPE>& stringView) {
     // grow capacity if needed to fit string view
     size_t newCapacity = m_capacity;
     while (m_gapStart + stringView.GetLength() > m_gapEnd + (newCapacity - m_capacity)) {
-        newCapacity = m_capacity + (m_capacity >> 1);
+        newCapacity = newCapacity + (newCapacity >> 1);
         LOG_D("new capacity will be %llu to accomodate range to insert\n", newCapacity);
     }
 

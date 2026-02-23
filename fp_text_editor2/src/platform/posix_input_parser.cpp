@@ -1,5 +1,7 @@
 #include "posix_input_parser.hpp"
 
+#ifdef SPD_PLATFORM_LINUX
+
 spd::KeyEvent spd::internal::ParseEscapeSequence() {
     char seq[4]{ 0 };
 
@@ -48,3 +50,5 @@ spd::KeyEvent spd::internal::MapByteToKey(char c) {
     if (c >= 32 && c <= 126) return { (Key)c, c };
     return { (Key)c, c };
 }
+
+#endif
